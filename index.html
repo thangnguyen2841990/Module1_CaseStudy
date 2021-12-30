@@ -32,9 +32,8 @@
     }
 
     button {
-        height: 10%;
+        height: 15%;
         width: 10%;
-
         font-size: 20px;
         outline: none;
         color: white;
@@ -48,11 +47,15 @@
     #bR {
         background-image: linear-gradient(red, orange);
     }
+    #bC{
+        background-image: linear-gradient(green, orange);
+
+    }
 </style>
 <body>
 <div style="text-align: center">
     <button id="bL" onclick="starGame()">STAR</button>
-    <span><button id="bR" onclick="resetGame()">RESET</button></span>
+    <span><button id="bR" onclick="resetGame()">RESET</button></span><span><button id="bC" onclick="clearHighScore()">Clear Score</button></span>
 </div>
 <div class="container">
 
@@ -63,9 +66,9 @@
 <script>
     let canvas = document.getElementById('myCanvas');
     let ctx = canvas.getContext('2d');
-    let ball = new Ball(160, 0, 8, 'orange', 6.5, 6.5);
-    let ball1 = new Ball(160, 0, 8, 'black', 4, 4);
-    let bar = new Bar(100, 255, 120, 5, 40, 'red');
+    let ball = new Ball(160, 0, 8, 'orange', 4, 4);
+    let ball1 = new Ball(100, 0, 8, 'black', 2.5, 2.5);
+    let bar = new Bar(100, 255, 130, 5, 40, 'red');
     let heart = new Heart(280, 0, 20, 20, 'img/heart-removebg-preview.png');
     let interval = -1;
     let life = 3;
@@ -79,17 +82,21 @@
     function moveBar(event) {
         switch (event.keyCode) {
             case 37 : {
-                if (bar.x < 0) {
+                if (bar.x < 20) {
                     return;
                 }
                 bar.moveLeft();
                 break;
             }
             case  39 : {
-                if (bar.x + bar.width > canvas.width) {
+                if (bar.x + bar.width > 310) {
                     return;
                 }
                 bar.moveRight();
+                break;
+            }
+            case 32 : {
+                bar.upSpeed();
                 break;
             }
         }
@@ -107,6 +114,7 @@
         drawBackground();
         drawScore();
         drawLife();
+        highscore()
         heart.drawHeart(ctx);
         ball.drawBall(ctx);
         ball1.drawBall(ctx)
@@ -116,14 +124,14 @@
     //draw score
     function drawScore() {
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 15px Arial';
         ctx.fillText("Score: " + score, 0, 18)
     }
 
     //draw lìfe
     function drawLife() {
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 15px Arial';
         ctx.fillText(life, 305, 18);
     }
 
@@ -172,12 +180,16 @@
         ball._x += ball._dx;
         ball._y += ball._dy;
         if (score === 3) { // tăng độ khó khi được 5 đ
-            ball._dx = 6.5;
-            ball._dy = 6.5;
+            ball._dx = 5;
+            ball._dy = 5;
         }
         if (score >= 6) { // tăng độ khó khi 10đ
             ball1.x += ball1.dx;
             ball1.y += ball1.dy;
+        }
+        if (score ===20){
+            ball.dx = 6;
+            ball.dy = 6;
         }
 
         updateCanvas();
@@ -199,6 +211,7 @@
         }
         if (ball1._y + ball1._dy > bar._y && ball1._x > bar._x && ball1._x < bar._x + bar._width) { // đập thanh bar
             ball1._dy = -ball1._dy;
+            score++;
         }
         updateCanvas();
         if (checkLose()) {
@@ -210,7 +223,12 @@
         if (life === 0) {
             cancelAnimationFrame(interval);
             drawEndgame(ctx);
-            alert("Your Score is: "+score);
+            if (localStorage.getItem('highScore') < score) {
+                localStorage.setItem('highScore', score);
+                let name = prompt("Bạn đã đạt điểm cao nhất, mời nhập tên");
+                localStorage.setItem('name', name)
+            }
+
         } else {
             interval = requestAnimationFrame(starGame);
         }
@@ -221,8 +239,16 @@
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
     }
-
-    draw()
+    function highscore() {
+        ctx.fillText("Highest score: " + localStorage.getItem('highScore') + " by " + localStorage.getItem('name'), 0, 40)
+    }
+    function clearHighScore() {
+        window.localStorage.clear();
+        location.reload();
+        localStorage.setItem('highScore', 0);
+        localStorage.setItem('name', 'Player')
+    }
+    draw();
     ball1.drawBall(ctx);
     ball.drawBall(ctx);
     bar.drawBar(ctx);
