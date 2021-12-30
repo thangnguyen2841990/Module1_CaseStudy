@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="bar.js"></script>
+    <script src="ball.js"></script>
+    <script src="heart.js"></script>
+</head>
+<style>
+    .container {
+        margin-left: 10%;
+        margin-top: 5%;
+        height: 80%;
+        width: 80%;
+        border-color: yellow;
+        background-color: green;
+        color: #00BCD4;
+        border-radius: 30px;
+        box-shadow: 0px 0px 50px #101010;
+        padding: 15px;
+        font-size: 30px;
+    }
+
+    canvas {
+        background: white;
+        display: block;
+        height: 40%;
+        width: 50%;
+        margin: 0 auto;
+        border: 2px solid blueviolet;
+    }
+
+    button {
+        height: 10%;
+        width: 10%;
+
+        font-size: 20px;
+        outline: none;
+        color: white;
+
+    }
+
+    #bL {
+        background-image: linear-gradient(darkred, lightgreen);
+    }
+
+    #bR {
+        background-image: linear-gradient(red, orange);
+    }
+</style>
+<body>
+<div style="text-align: center">
+    <button id="bL" onclick="starGame()">STAR</button>
+    <span><button id="bR" onclick="resetGame()">RESET</button></span>
+</div>
+<div class="container">
+
+    <canvas id="myCanvas" width="320px" height="260"></canvas>
+
+
+</div>
+<script>
+    let canvas = document.getElementById('myCanvas');
+    let ctx = canvas.getContext('2d');
+    let ball = new Ball(160, 0, 8, 'orange', 6.5, 6.5);
+    let ball1 = new Ball(160, 0, 8, 'black', 4, 4);
+    let bar = new Bar(100, 255, 120, 5, 40, 'red');
+    let heart = new Heart(280, 0, 20, 20, 'img/heart-removebg-preview.png');
+    let interval = -1;
+    let life = 3;
+    let score = 0;
+    let imgBg = new Image();
+    imgBg.src = 'img/bouncing-balls-l.png';
+    let img = new Image();
+    img.src = 'img/background.png';
+
+    //Hàm di chuyển trái, phải thanh bar:
+    function moveBar(event) {
+        switch (event.keyCode) {
+            case 37 : {
+                if (bar.x < 0) {
+                    return;
+                }
+                bar.moveLeft();
+                break;
+            }
+            case  39 : {
+                if (bar.x + bar.width > canvas.width) {
+                    return;
+                }
+                bar.moveRight();
+                break;
+            }
+        }
+        updateCanvas();
+    }
+
+    // Hàm xóa canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // update canvas
+    function updateCanvas() {
+        clearCanvas();
+        drawBackground();
+        drawScore();
+        drawLife();
+        heart.drawHeart(ctx);
+        ball.drawBall(ctx);
+        ball1.drawBall(ctx)
+        bar.drawBar(ctx);
+    }
+
+    //draw score
+    function drawScore() {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText("Score: " + score, 0, 18)
+    }
+
+    //draw lìfe
+    function drawLife() {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText(life, 305, 18);
+    }
+
+    // check Lose
+    function checkLose() {
+        if (ball.y > bar.y && ball.x < bar.x) {
+            life--;
+            return true;
+        }
+        if (ball.y > bar.y && ball.x > bar.x + bar.width) {
+            life--;
+            return true
+        }
+        if (ball1.y > bar.y && ball1.x < bar.x) {
+            life--;
+            return true;
+        }
+        if (ball1.y > bar.y && ball1.x > bar.x + bar.width) {
+            life--;
+            return true
+        }
+    }
+
+    //Random tọa độ
+    function random(min, max) {
+        return Math.ceil(Math.random() * (max - min) + min)
+    }
+
+    //draw background
+    function drawBackground() {
+        ctx.drawImage(imgBg, 0, 0, canvas.width, canvas.height);
+    }
+
+    function drawEndgame(ctx) {
+        let img = new Image()
+        img.src = 'img/5zRQsSrD_400x400-removebg-preview.png'
+        ctx.drawImage(img, 100, 50, 100, 50)
+
+    }
+
+    function resetGame() {
+        location.reload();
+    }
+
+    function starGame() {
+        ball._x += ball._dx;
+        ball._y += ball._dy;
+        if (score === 3) { // tăng độ khó khi được 5 đ
+            ball._dx = 6.5;
+            ball._dy = 6.5;
+        }
+        if (score >= 6) { // tăng độ khó khi 10đ
+            ball1.x += ball1.dx;
+            ball1.y += ball1.dy;
+        }
+
+        updateCanvas();
+        if (ball._x + ball._dx > canvas.width || ball._x + ball._dx < 0) { // điều kiện bóng di chuyển đập 2 bên tường
+            ball._dx = -ball._dx;
+        }
+        if (ball._y + ball._dy > canvas.height || ball._y + ball._dy < 0) {  // điều kiện bóng di chuyển đập truc y
+            ball._dy = -ball._dy;
+        }
+        if (ball._y + ball._dy > bar._y && ball._x > bar._x && ball._x < bar._x + bar._width) { // đập thanh bar
+            ball._dy = -ball._dy;
+            score++;
+        }
+        if (ball1._x + ball1._dx > canvas.width || ball1._x + ball1._dx < 0) { // điều kiện bóng di chuyển đập 2 bên tường
+            ball1._dx = -ball1._dx;
+        }
+        if (ball1._y + ball1._dy > canvas.height || ball1._y + ball1._dy < 0) {  // điều kiện bóng di chuyển đập truc y
+            ball1._dy = -ball1._dy;
+        }
+        if (ball1._y + ball1._dy > bar._y && ball1._x > bar._x && ball1._x < bar._x + bar._width) { // đập thanh bar
+            ball1._dy = -ball1._dy;
+        }
+        updateCanvas();
+        if (checkLose()) {
+            ball.x = 160;
+            ball.y = 0;
+            ball1.x = 160;
+            ball1.y = 0;
+        }
+        if (life === 0) {
+            cancelAnimationFrame(interval);
+            drawEndgame(ctx);
+            alert("Your Score is: "+score);
+        } else {
+            interval = requestAnimationFrame(starGame);
+        }
+    }
+
+    function draw() {
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    draw()
+    ball1.drawBall(ctx);
+    ball.drawBall(ctx);
+    bar.drawBar(ctx);
+    document.addEventListener('keydown', moveBar);
+</script>
+</body>
+</html>
